@@ -10,10 +10,55 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API proxy route
-app.use('/api', async (req, res) => {
+
+app.get('/api', async (req, res) => {
     try {
         const apiUrl = req.query.url;
-        const response = await axios.get(apiUrl);
+
+        const response = await axios.get(apiUrl, { withCredentials: false, });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('API Proxy Error:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+
+app.get('/mangas', async (req, res) => {
+    try {
+        const apiUrl = req.query.url;
+
+        console.log(req.query.url)
+
+        const response = await axios.get(apiUrl,
+            {
+                withCredentials: false,
+                params: {
+                    includedTags: req.query.includedTags,
+                    excludedTags: req.query.excludedTags,
+                    order: req.query.order,
+                    limit: req.query.limit
+                },
+                maxContentLength: Infinity,
+            });
+        res.json(response.data);
+    } catch (error) {
+        console.error('API Proxy Error:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/chapters', async (req, res) => {
+    try {
+        const apiUrl = req.query.url;
+
+        const response = await axios.get(apiUrl, {
+            withCredentials: false, params: {
+                translatedLanguage: req.query.translatedLanguage,
+            },
+        });
+
         res.json(response.data);
     } catch (error) {
         console.error('API Proxy Error:', error.message);
