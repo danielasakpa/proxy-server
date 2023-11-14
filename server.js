@@ -82,5 +82,5 @@ app.use('/image', async (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Proxy Server is running on http://localhost:${port}`);
+    console.log(`Proxy Server is running on PORT:${port}`);
 });
