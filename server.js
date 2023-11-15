@@ -5,7 +5,11 @@ const cors = require('cors'); // Import cors module
 const app = express();
 const port = process.env.PORT || 4000;
 
-app.use(cors()); // Use cors middleware
+app.use(cors({
+    origin: 'http://localhost:3000',
+})); // Use cors middleware
+
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -16,6 +20,19 @@ app.get('/api', async (req, res) => {
         const apiUrl = req.query.url;
 
         const response = await axios.get(apiUrl, { withCredentials: false, });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('API Proxy Error:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/manga', async (req, res) => {
+    try {
+        const apiUrl = req.query.url;
+
+        const response = await axios.get(apiUrl, { withCredentials: false, params: { title: req.query.title } });
 
         res.json(response.data);
     } catch (error) {
