@@ -5,9 +5,16 @@ const cors = require('cors'); // Import cors module
 const app = express();
 const port = process.env.PORT || 4000;
 
+
+const allowedOrigins = [
+    'https://manga-website1.netlify.app',
+    'http://localhost:3000',
+];
+
 app.use(cors({
-    origin: 'https://manga-website1.netlify.app',
-})); // Use cors middleware
+    origin: allowedOrigins,
+}));
+
 
 
 app.use(express.json());
