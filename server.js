@@ -48,7 +48,10 @@ app.get('/api', async (req, res) => {
 app.get('/manga', async (req, res) => {
     try {
         const apiUrl = req.query.url;
-        const cachedData = cache.get(apiUrl);
+
+        const cacheKey = `${apiUrl}-${JSON.stringify(req.query)}`; // Include request parameters in the cache key
+
+        const cachedData = cache.get(cacheKey);
 
         if (cachedData) {
             // Serve cached data
@@ -61,7 +64,7 @@ app.get('/manga', async (req, res) => {
             });
 
             // Cache data
-            cache.put(apiUrl, response.data, 60000); // Cache for 1 minute
+            cache.put(cacheKey, response.data, 60000); // Cache for 1 minute
 
             res.json(response.data);
         }
