@@ -49,25 +49,26 @@ app.get('/manga', async (req, res) => {
     try {
         const apiUrl = req.query.url;
 
-        const cacheKey = `${apiUrl}-${JSON.stringify(req.query)}`; // Include request parameters in the cache key
+        const cacheKey = `${apiUrl}-${req.query.title}-${JSON.stringify(req.query)}`; // Include request parameters in the cache key
+
+        console.log(cacheKey);
 
         const cachedData = cache.get(cacheKey);
-
         if (cachedData) {
-            // Serve cached data
             res.json(cachedData);
-        } else {
-            // Fetch data
-            const response = await axios.get(apiUrl, {
-                withCredentials: false,
-                params: { title: req.query.title },
-            });
-
-            // Cache data
-            cache.put(cacheKey, response.data, 60000); // Cache for 1 minute
-
-            res.json(response.data);
+            return;
         }
+        // Fetch data
+        const response = await axios.get(apiUrl, {
+            withCredentials: false,
+            params: { title: req.query.title },
+        });
+
+        // Cache data
+        cache.put(cacheKey, response.data, 60000); // Cache for 1 minute
+
+        res.json(response.data);
+
     } catch (error) {
         console.error('API Proxy Error:', error.message);
         res.status(500).send('Internal Server Error');
@@ -100,7 +101,7 @@ app.get('/mangas', async (req, res) => {
             maxContentLength: Infinity,
         });
 
-        cache.put(cacheKey, response.data);
+        cache.put(cacheKey, response.data, 60000);
         res.json(response.data);
     } catch (error) {
         console.error('API Proxy Error:', error.message);
