@@ -51,8 +51,6 @@ app.get('/manga', async (req, res) => {
 
         const cacheKey = `${apiUrl}-${req.query.title}-${JSON.stringify(req.query)}`; // Include request parameters in the cache key
 
-        console.log(cacheKey);
-
         const cachedData = cache.get(cacheKey);
         if (cachedData) {
             res.json(cachedData);
@@ -80,9 +78,7 @@ app.get('/mangas', async (req, res) => {
     try {
         const apiUrl = req.query.url;
 
-        const cacheKey = `${apiUrl}-${JSON.stringify(req.query)}`; // Include request parameters in the cache key
-
-        console.log(cacheKey);
+        const cacheKey = `${apiUrl}-${JSON.stringify(req.query)}`;
 
         const cachedData = cache.get(cacheKey);
         if (cachedData) {
@@ -96,7 +92,8 @@ app.get('/mangas', async (req, res) => {
                 includedTags: req.query.includedTags,
                 excludedTags: req.query.excludedTags,
                 order: req.query.order,
-                limit: req.query.limit
+                limit: req.query.limit,
+                offset: req.query.offset || 0, // Use the provided offset or default to 0
             },
             maxContentLength: Infinity,
         });
@@ -108,6 +105,7 @@ app.get('/mangas', async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
 
 // Chapters proxy route
 app.get('/chapters', async (req, res) => {
