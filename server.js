@@ -1,11 +1,13 @@
 const express = require('express');
+const cluster = require('cluster');
+const numCPUs = require('os').cpus().length;
 const axios = require('axios');
 const cors = require('cors');
 const compression = require('compression');
 const cache = require('memory-cache'); // Install using npm install memory-cache
 
 const app = express();
-const port = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = [
     'https://manga-website1.netlify.app',
@@ -21,7 +23,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API proxy route
-app.get('/api', async (req, res) => {
+
+const handleApiRequest = async (req, res) => {
     try {
         const apiUrl = req.query.url;
         const cachedData = cache.get(apiUrl);
@@ -42,10 +45,10 @@ app.get('/api', async (req, res) => {
         console.error('API Proxy Error:', error.message);
         res.status(500).send('Internal Server Error');
     }
-});
+}
 
 // Manga proxy route
-app.get('/manga', async (req, res) => {
+const handleMangaRequest = async (req, res) => {
     try {
         const apiUrl = req.query.url;
 
@@ -66,15 +69,14 @@ app.get('/manga', async (req, res) => {
         cache.put(cacheKey, response.data, 60000); // Cache for 1 minute
 
         res.json(response.data);
-
     } catch (error) {
         console.error('API Proxy Error:', error.message);
         res.status(500).send('Internal Server Error');
     }
-});
+}
 
 // Mangas proxy route
-app.get('/mangas', async (req, res) => {
+const handleMangasRequest = async (req, res) => {
     try {
         const apiUrl = req.query.url;
 
@@ -104,11 +106,10 @@ app.get('/mangas', async (req, res) => {
         console.error('API Proxy Error:', error.message);
         res.status(500).send('Internal Server Error');
     }
-});
-
+}
 
 // Chapters proxy route
-app.get('/chapters', async (req, res) => {
+const handleChaptersRequest = async (req, res) => {
     try {
         const apiUrl = req.query.url;
         const cachedData = cache.get(apiUrl);
@@ -132,10 +133,10 @@ app.get('/chapters', async (req, res) => {
         console.error('API Proxy Error:', error.message);
         res.status(500).send('Internal Server Error');
     }
-});
+}
 
 // Image proxy route
-app.use('/image', async (req, res) => {
+const handleImageRequest = async (req, res) => {
     try {
         const imageUrl = req.query.url;
         const cachedImage = cache.get(imageUrl);
@@ -159,9 +160,36 @@ app.use('/image', async (req, res) => {
         console.error('Image Proxy Error:', error.message);
         res.status(500).send('Internal Server Error');
     }
-});
+}
 
-// Start the server
-app.listen(port, () => {
-    console.log(`Proxy Server is running on PORT:${port}`);
-});
+// Use clustering to take advantage of multiple CPU cores
+if (cluster.isMaster) {
+    console.log(`Master ${process.pid} is running`);
+
+    // Fork workers
+    for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
+    }
+
+    // Listen for worker exit events
+    cluster.on('exit', (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} died`);
+    });
+} else {
+
+    // Set up the server
+    app.get('/api', handleApiRequest);
+    app.get('/manga', handleMangaRequest);
+    app.get('/mangas', handleMangasRequest);
+    app.get('/chapters', handleChaptersRequest);
+    app.use('/image', handleImageRequest);
+
+    app.listen(PORT, () => {
+        console.log(`Worker ${process.pid} is up on localhost:${PORT}`);
+    });
+}
+
+// // Start the server
+// app.listen(port, () => {
+//     console.log(`Proxy Server is running on PORT:${port}`);
+// });
