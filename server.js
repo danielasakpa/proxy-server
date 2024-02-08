@@ -2,7 +2,7 @@ const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 const compression = require('compression');
-
+const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -29,13 +29,12 @@ app.use(
 );
 
 app.get(
-    '/images/:id/:imageUrl',
+    '/image',
     async (req, res, next) => {
         try {
-            const { id, imageUrl } = req.params;
-            const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
+        const imageUrl = req.query.url;
 
-            const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
             
             res.set('Content-Type', response.headers['content-type']);
             
@@ -47,13 +46,12 @@ app.get(
     }
 );
 
-
 app.get(
-    '/chapter/:hash/:img',
+    '/images/:id/:imageUrl',
     async (req, res, next) => {
         try {
-            const { hash, img } = req.params;
-            const targetUrl = `https://uploads.mangadex.org/data/${hash}/${img}`;
+            const { id, imageUrl } = req.params;
+            const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
 
             const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
             
