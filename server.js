@@ -32,9 +32,9 @@ app.use(
 app.use(
     '/image',
     createProxyMiddleware({
-        target: 'https://uploads.mangadex.org/covers',
+        target: 'https://uploads.mangadex.org',
         changeOrigin: true,
-        pathRewrite: { '^/image': '' },
+        pathRewrite: { '^/image': '/covers' },
     })
 );
 
@@ -43,7 +43,7 @@ app.use(
     createProxyMiddleware({
         target: 'https://uploads.mangadex.org',
         changeOrigin: true,
-        pathRewrite: { '^/chapter': '' },
+        pathRewrite: { '^/chapter': '/data' },
     })
 );
 
