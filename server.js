@@ -38,6 +38,15 @@ app.use(
     })
 );
 
+app.use(
+    '/chapter',
+    createProxyMiddleware({
+        target: 'https://uploads.mangadex.org',
+        changeOrigin: true,
+        pathRewrite: { '^/chapter': '' },
+    })
+);
+
 app.listen(PORT, () => {
     console.log(`Worker ${process.pid} is up on localhost:${PORT}`);
 });
