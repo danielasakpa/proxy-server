@@ -31,16 +31,12 @@ app.use(
 app.use(
     '/images/:id/:imageUrl',
     createProxyMiddleware({
-        target: 'https://uploads.mangadex.org/covers',
+        target: 'https://uploads.mangadex.org',
         changeOrigin: true,
         pathRewrite: (path, req) => {
             const { id, imageUrl } = req.params;
-            return `/${id}/${imageUrl}`;
-        },
-        onProxyRes: (proxyRes, req, res) => {
-            res.setHeader('Access-Control-Allow-Origin', 'https://manga-website1.netlify.app');
-            res.setHeader('Access-Control-Allow-Methods', 'GET');
-        },
+            return `/covers/${id}/${imageUrl}`;      
+         },
     })
 );
 
