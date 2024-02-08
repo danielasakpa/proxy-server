@@ -16,5 +16,8 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "memory-cache": "^0.2.0"
+  },
+  "devDependencies": {
+    "http-proxy-middleware": "^2.0.6"
   }
 }
