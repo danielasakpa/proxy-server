@@ -32,7 +32,7 @@ app.use(
 app.use(
     '/image',
     createProxyMiddleware({
-        target: 'https://uploads.mangadex.org',
+        target: 'https://uploads.mangadex.org/covers',
         changeOrigin: true,
         pathRewrite: { '^/image': '' },
     })
