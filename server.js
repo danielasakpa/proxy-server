@@ -28,28 +28,43 @@ app.use(
     })
 );
 
-app.use(
+app.get(
     '/images/:id/:imageUrl',
-    createProxyMiddleware({
-        target: 'https://uploads.mangadex.org',
-        changeOrigin: true,
-        pathRewrite: (path, req) => {
+    async (req, res, next) => {
+        try {
             const { id, imageUrl } = req.params;
-            return `/covers/${id}/${imageUrl}`;      
-         },
-    })
+            const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
+
+            const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+            
+            res.set('Content-Type', response.headers['content-type']);
+            
+            res.send(response.data);
+        } catch (error) {
+            console.error('Image Proxy Error:', error.message);
+            res.status(500).send('Internal Server Error');
+        }
+    }
 );
 
-app.use(
+
+app.get(
     '/chapter/:hash/:img',
-    createProxyMiddleware({
-        target: 'https://uploads.mangadex.org/data',
-        changeOrigin: true,
-        pathRewrite: (path, req) => {
+    async (req, res, next) => {
+        try {
             const { hash, img } = req.params;
-            return `/${hash}/${img}`;
-        },
-    })
+            const targetUrl = `https://uploads.mangadex.org/data/${hash}/${img}`;
+
+            const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+            
+            res.set('Content-Type', response.headers['content-type']);
+            
+            res.send(response.data);
+        } catch (error) {
+            console.error('Image Proxy Error:', error.message);
+            res.status(500).send('Internal Server Error');
+        }
+    }
 );
 
 app.listen(PORT, () => {
