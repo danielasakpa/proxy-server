@@ -35,17 +35,20 @@ app.use(
         changeOrigin: true,
         pathRewrite: (path, req) => {
             const { id, imageUrl } = req.params;
-            return `/${id}/${imageUrl}`;
+            return `images/${id}/${imageUrl}`;
         },
     })
 );
 
 app.use(
-    '/chapter',
+    '/chapter/:hash/:img',
     createProxyMiddleware({
-        target: 'https://uploads.mangadex.org',
+        target: 'https://uploads.mangadex.org/data',
         changeOrigin: true,
-        pathRewrite: { '^/chapter': '/data' },
+        pathRewrite: (path, req) => {
+            const { hash, img } = req.params;
+            return `/chapter/${hash}/${img}`;
+        },
     })
 );
 
