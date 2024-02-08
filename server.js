@@ -35,7 +35,11 @@ app.use(
         changeOrigin: true,
         pathRewrite: (path, req) => {
             const { id, imageUrl } = req.params;
-            return `images/${id}/${imageUrl}`;
+            return `/${id}/${imageUrl}`;
+        },
+        onProxyRes: (proxyRes, req, res) => {
+            res.setHeader('Access-Control-Allow-Origin', 'https://manga-website1.netlify.app');
+            res.setHeader('Access-Control-Allow-Methods', 'GET');
         },
     })
 );
@@ -47,7 +51,7 @@ app.use(
         changeOrigin: true,
         pathRewrite: (path, req) => {
             const { hash, img } = req.params;
-            return `/chapter/${hash}/${img}`;
+            return `/${hash}/${img}`;
         },
     })
 );
