@@ -19,7 +19,6 @@ app.use((req, res, next) => {
 });
 
 
-// API proxy route
 app.use(
     '/api',
     createProxyMiddleware({
@@ -30,11 +29,14 @@ app.use(
 );
 
 app.use(
-    '/image',
+    '/images/:id/:imageUrl',
     createProxyMiddleware({
-        target: 'https://uploads.mangadex.org',
+        target: 'https://uploads.mangadex.org/covers',
         changeOrigin: true,
-        pathRewrite: { '^/image': '/covers' },
+        pathRewrite: (path, req) => {
+            const { id, imageUrl } = req.params;
+            return `/${id}/${imageUrl}`;
+        },
     })
 );
 
