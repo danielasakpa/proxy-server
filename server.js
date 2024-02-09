@@ -11,14 +11,6 @@ const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 
-app.use((req, res, next) => {
-    res.header('X-Content-Type-Options', 'nosniff');
-    res.header('X-Frame-Options', 'deny');
-    res.header('X-XSS-Protection', '1; mode=block');
-    next();
-});
-
-
 app.use(
     '/api',
     createProxyMiddleware({
@@ -28,23 +20,6 @@ app.use(
     })
 );
 
-app.get(
-    '/image',
-    async (req, res, next) => {
-        try {
-        const imageUrl = req.query.url;
-
-            const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-            
-            res.set('Content-Type', response.headers['content-type']);
-            
-            res.send(response.data);
-        } catch (error) {
-            console.error('Image Proxy Error:', error.message);
-            res.status(500).send('Internal Server Error');
-        }
-    }
-);
 
 app.get(
     '/images/:id/:imageUrl',
@@ -54,9 +29,28 @@ app.get(
             const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
 
             const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
-            
+
             res.set('Content-Type', response.headers['content-type']);
-            
+
+            res.send(response.data);
+        } catch (error) {
+            console.error('Image Proxy Error:', error.message);
+            res.status(500).send('Internal Server Error');
+        }
+    }
+);
+
+app.get(
+    '/chapter/:hash/:img',
+    async (req, res, next) => {
+        try {
+            const { hash, img } = req.params;
+            const targetUrl = `https://uploads.mangadex.org/data/${hash}/${img}`;
+
+            const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+
+            res.set('Content-Type', response.headers['content-type']);
+
             res.send(response.data);
         } catch (error) {
             console.error('Image Proxy Error:', error.message);
