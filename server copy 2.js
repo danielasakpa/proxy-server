@@ -4,6 +4,8 @@ const cors = require('cors');
 const compression = require('compression');
 const axios = require('axios');
 const app = express();
+const https = require('https');
+const cache = require('memory-cache'); // Install using npm install memory-cache
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:3000'];
@@ -17,6 +19,9 @@ app.use(
         target: 'https://api.mangadex.org',
         changeOrigin: true,
         pathRewrite: { '^/api': '' },
+        agent: new https.Agent({
+            maxSockets: 100
+        })
     })
 );
 
@@ -24,7 +29,23 @@ app.use(
 // Define a helper function to proxy an image
 const proxyImage = async (id, imageUrl) => {
     const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
+
+    // Check if the image is in the cache
+    const cachedImage = cache.get(targetUrl);
+
+    if (cachedImage) {
+        return cachedImage;
+    }
+
+    // Fetch the image if not in the cache
     const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+
+    // Cache the image
+    cache.put(targetUrl, {
+        contentType: response.headers['content-type'],
+        data: response.data,
+    }, 60000); // Cache for 1 minute
+
     return {
         contentType: response.headers['content-type'],
         data: response.data,
@@ -34,7 +55,23 @@ const proxyImage = async (id, imageUrl) => {
 // Define a helper function to proxy a chapter
 const proxyChapter = async (hash, img) => {
     const targetUrl = `https://uploads.mangadex.org/data/${hash}/${img}`;
+
+    // Check if the chapter is in the cache
+    const cachedChapter = cache.get(targetUrl);
+
+    if (cachedChapter) {
+        return cachedChapter;
+    }
+
+    // Fetch the chapter if not in the cache
     const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+
+    // Cache the chapter
+    cache.put(targetUrl, {
+        contentType: response.headers['content-type'],
+        data: response.data,
+    }, 60000); // Cache for 1 minute
+
     return {
         contentType: response.headers['content-type'],
         data: response.data,
@@ -70,6 +107,7 @@ app.get(
         }
     }
 );
+
 app.listen(PORT, () => {
     console.log(`App is running on localhost:${PORT}`);
 });
