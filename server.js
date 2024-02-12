@@ -4,7 +4,6 @@ const cors = require('cors');
 const compression = require('compression');
 const axios = require('axios');
 const app = express();
-const https = require('https');
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:3000'];
@@ -12,15 +11,13 @@ const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 
-pp.use(
+
+app.use(
     '/api',
     createProxyMiddleware({
         target: 'https://api.mangadex.org',
         changeOrigin: true,
         pathRewrite: { '^/api': '' },
-        agent: new https.Agent({
-            maxSockets: 100
-        })
     })
 );
 
@@ -73,6 +70,7 @@ app.get(
         }
     }
 );
+
 app.listen(PORT, () => {
     console.log(`App is running on localhost:${PORT}`);
 });
