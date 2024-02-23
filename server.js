@@ -14,114 +14,115 @@ app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 
 app.use('/api', async (req, res) => {
-    try {
-      await new Promise((resolve, reject) => {
-        const proxyMiddleware = createProxyMiddleware({
-          target: 'https://api.mangadex.org',
-          changeOrigin: true,
-          pathRewrite: { '^/api': '' },
-          agent: new https.Agent({
-            maxSockets: 100,
-          }),
-        });
-  
-        proxyMiddleware(req, res, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
+  try {
+    await new Promise((resolve, reject) => {
+      const proxyMiddleware = createProxyMiddleware({
+        target: 'https://api.mangadex.org',
+        changeOrigin: true,
+        pathRewrite: { '^/api': '' },
+        proxyTimeout: 120000,
+        agent: new https.Agent({
+          maxSockets: 100,
+        }),
       });
-      // Additional logic after the proxy request
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
-    }
-  });
+
+      proxyMiddleware(req, res, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+    // Additional logic after the proxy request
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 // Define a helper function to proxy an image
 const proxyImage = async (id, imageUrl) => {
-    const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
+  const targetUrl = `https://uploads.mangadex.org/covers/${id}/${imageUrl}`;
 
-    // Check if the image is in the cache
-    const cachedImage = cache.get(targetUrl);
+  // Check if the image is in the cache
+  const cachedImage = cache.get(targetUrl);
 
-    if (cachedImage) {
-        return cachedImage;
-    }
+  if (cachedImage) {
+    return cachedImage;
+  }
 
-    // Fetch the image if not in the cache
-    const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+  // Fetch the image if not in the cache
+  const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
 
-    // Cache the image
-    cache.put(targetUrl, {
-        contentType: response.headers['content-type'],
-        data: response.data,
-    }, 60000); // Cache for 1 minute
+  // Cache the image
+  cache.put(targetUrl, {
+    contentType: response.headers['content-type'],
+    data: response.data,
+  }, 60000); // Cache for 1 minute
 
-    return {
-        contentType: response.headers['content-type'],
-        data: response.data,
-    };
+  return {
+    contentType: response.headers['content-type'],
+    data: response.data,
+  };
 };
 
 // Define a helper function to proxy a chapter
 const proxyChapter = async (hash, img) => {
-    const targetUrl = `https://uploads.mangadex.org/data/${hash}/${img}`;
+  const targetUrl = `https://uploads.mangadex.org/data/${hash}/${img}`;
 
-    // Check if the chapter is in the cache
-    const cachedChapter = cache.get(targetUrl);
+  // Check if the chapter is in the cache
+  const cachedChapter = cache.get(targetUrl);
 
-    if (cachedChapter) {
-        return cachedChapter;
-    }
+  if (cachedChapter) {
+    return cachedChapter;
+  }
 
-    // Fetch the chapter if not in the cache
-    const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
+  // Fetch the chapter if not in the cache
+  const response = await axios.get(targetUrl, { responseType: 'arraybuffer' });
 
-    // Cache the chapter
-    cache.put(targetUrl, {
-        contentType: response.headers['content-type'],
-        data: response.data,
-    }, 60000); // Cache for 1 minute
+  // Cache the chapter
+  cache.put(targetUrl, {
+    contentType: response.headers['content-type'],
+    data: response.data,
+  }, 60000); // Cache for 1 minute
 
-    return {
-        contentType: response.headers['content-type'],
-        data: response.data,
-    };
+  return {
+    contentType: response.headers['content-type'],
+    data: response.data,
+  };
 };
 
 app.get(
-    '/images/:id/:imageUrl',
-    async (req, res) => {
-        try {
-            const { id, imageUrl } = req.params;
-            const result = await proxyImage(id, imageUrl);
-            res.set('Content-Type', result.contentType);
-            res.send(result.data);
-        } catch (error) {
-            console.error('Image Proxy Error:', error.message);
-            res.status(500).send('Internal Server Error');
-        }
+  '/images/:id/:imageUrl',
+  async (req, res) => {
+    try {
+      const { id, imageUrl } = req.params;
+      const result = await proxyImage(id, imageUrl);
+      res.set('Content-Type', result.contentType);
+      res.send(result.data);
+    } catch (error) {
+      console.error('Image Proxy Error:', error.message);
+      res.status(500).send('Internal Server Error');
     }
+  }
 );
 
 app.get(
-    '/chapter/:hash/:img',
-    async (req, res) => {
-        try {
-            const { hash, img } = req.params;
-            const result = await proxyChapter(hash, img);
-            res.set('Content-Type', result.contentType);
-            res.send(result.data);
-        } catch (error) {
-            console.error('Chapter Proxy Error:', error.message);
-            res.status(500).send('Internal Server Error');
-        }
+  '/chapter/:hash/:img',
+  async (req, res) => {
+    try {
+      const { hash, img } = req.params;
+      const result = await proxyChapter(hash, img);
+      res.set('Content-Type', result.contentType);
+      res.send(result.data);
+    } catch (error) {
+      console.error('Chapter Proxy Error:', error.message);
+      res.status(500).send('Internal Server Error');
     }
+  }
 );
 
 app.listen(PORT, () => {
-    console.log(`App is running on localhost:${PORT}`);
+  console.log(`App is running on localhost:${PORT}`);
 });
