@@ -15,26 +15,16 @@ app.use(compression());
 
 app.use('/api', async (req, res) => {
   try {
-    await new Promise((resolve, reject) => {
-      const proxyMiddleware = createProxyMiddleware({
-        target: 'https://api.mangadex.org',
-        changeOrigin: true,
-        pathRewrite: { '^/api': '' },
-        proxyTimeout: 120000,
-        agent: new https.Agent({
-          maxSockets: 100,
-        }),
-      });
-
-      proxyMiddleware(req, res, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+    createProxyMiddleware({
+      target: 'https://api.mangadex.org',
+      changeOrigin: true,
+      pathRewrite: { '^/api': '' },
+      proxyTimeout: 120000,
+      agent: new https.Agent({
+        maxSockets: 100,
+      }),
     });
-    // Additional logic after the proxy request
+
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
