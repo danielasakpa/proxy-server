@@ -15,7 +15,7 @@ app.use(compression());
 
 app.use('/api', async (req, res) => {
   try {
-    createProxyMiddleware({
+    const proxyMiddleware = createProxyMiddleware({
       target: 'https://api.mangadex.org',
       changeOrigin: true,
       pathRewrite: { '^/api': '' },
@@ -25,6 +25,10 @@ app.use('/api', async (req, res) => {
       }),
     });
 
+    // Execute the proxy middleware to handle the request
+    proxyMiddleware(req, res, () => {
+      // Additional logic after the proxy request
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
