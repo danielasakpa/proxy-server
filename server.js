@@ -17,17 +17,22 @@ const proxyMiddleware = createProxyMiddleware({
   target: 'https://api.mangadex.org',
   changeOrigin: true,
   pathRewrite: { '^/api': '' },
-  proxyTimeout: 120000,
   agent: new https.Agent({
     maxSockets: 100,
   }),
 });
 
 app.use('/api', (req, res) => {
-  proxyMiddleware(req, res, () => {
-    console.log('Proxy request completed.');
+  proxyMiddleware(req, res, (err) => {
+    if (err) {
+      console.error('Proxy request error:', err);
+      res.status(500).send('Internal Server Error');
+    } else {
+      console.log('Proxy request completed.');
+    }
   });
 });
+
 
 // Define a helper function to proxy an image
 const proxyImage = async (id, imageUrl) => {
