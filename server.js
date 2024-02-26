@@ -13,26 +13,20 @@ const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 
-app.use('/api', async (req, res) => {
-  try {
-    const proxyMiddleware = createProxyMiddleware({
-      target: 'https://api.mangadex.org',
-      changeOrigin: true,
-      pathRewrite: { '^/api': '' },
-      proxyTimeout: 120000,
-      agent: new https.Agent({
-        maxSockets: 100,
-      }),
-    });
+const proxyMiddleware = createProxyMiddleware({
+  target: 'https://api.mangadex.org',
+  changeOrigin: true,
+  pathRewrite: { '^/api': '' },
+  proxyTimeout: 120000,
+  agent: new https.Agent({
+    maxSockets: 100,
+  }),
+});
 
-    // Execute the proxy middleware to handle the request
-    proxyMiddleware(req, res, () => {
-      // Additional logic after the proxy request
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
+app.use('/api', (req, res) => {
+  proxyMiddleware(req, res, () => {
+    console.log('Proxy request completed.');
+  });
 });
 
 // Define a helper function to proxy an image
