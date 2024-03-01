@@ -18,11 +18,11 @@ app.use(compression());
 
 // Implement rate limiting for the '/api' endpoint
 const apiLimiter = rateLimit({
-  windowMs: 1000, // 1 second
+  windowMs: 1000,
   limit: 5,
 });
 
-app.use(apiLimiter);
+app.use('/api', apiLimiter);
 
 const proxyMiddleware = createProxyMiddleware({
   target: 'https://api.mangadex.org',
