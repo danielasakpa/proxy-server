@@ -16,13 +16,13 @@ const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 
-// Implement rate limiting for the '/api' endpoint
-const apiLimiter = rateLimit({
-  windowMs: 1000,
-  limit: 5,
-});
+// // Implement rate limiting for the '/api' endpoint
+// const apiLimiter = rateLimit({
+//   windowMs: 1000,
+//   limit: 5,
+// });
 
-app.use('/api', apiLimiter);
+// app.use('/api', apiLimiter);
 
 const proxyMiddleware = createProxyMiddleware({
   target: 'https://api.mangadex.org',
