@@ -3,26 +3,15 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
 const compression = require('compression');
 const axios = require('axios');
-const cache = require('memory-cache');
-const { rateLimit } = require('express-rate-limit');
-const https = require('https');
+const cache = require('memory-cache'); // Import the memory-cache library
 const app = express();
-
-
+const https = require('https');
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:3000'];
 
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
-
-// // Implement rate limiting for the '/api' endpoint
-// const apiLimiter = rateLimit({
-//   windowMs: 1000,
-//   limit: 5,
-// });
-
-// app.use('/api', apiLimiter);
 
 const proxyMiddleware = createProxyMiddleware({
   target: 'https://api.mangadex.org',
