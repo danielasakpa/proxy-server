@@ -4,7 +4,7 @@ const cors = require('cors');
 const compression = require('compression');
 const axios = require('axios');
 const cache = require('memory-cache'); // Import the memory-cache library
-const apicache = require('apicache'); // Import the memory-cache library
+const apicache = require('apicache');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -13,7 +13,7 @@ const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
 
-let cache = apicache.middleware
+let apiCache = apicache.middleware
 
 const proxyMiddleware = createProxyMiddleware({
   target: 'https://api.mangadex.org',
@@ -21,7 +21,7 @@ const proxyMiddleware = createProxyMiddleware({
   pathRewrite: { '^/api': '' }
 });
 
-app.use('/api', cache('5 minutes'), (req, res) => {
+app.use('/api', apiCache('5 minutes'), (req, res) => {
   proxyMiddleware(req, res, (err) => {
     if (err) {
       console.error('Proxy request error:', err);
