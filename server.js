@@ -5,7 +5,6 @@ const compression = require('compression');
 const axios = require('axios');
 const cache = require('memory-cache'); // Import the memory-cache library
 const app = express();
-const https = require('https');
 const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:3000'];
@@ -16,10 +15,7 @@ app.use(compression());
 const proxyMiddleware = createProxyMiddleware({
   target: 'https://api.mangadex.org',
   changeOrigin: true,
-  pathRewrite: { '^/api': '' },
-  agent: new https.Agent({
-    maxSockets: 100,
-  }),
+  pathRewrite: { '^/api': '' }
 });
 
 app.use('/api', (req, res) => {
