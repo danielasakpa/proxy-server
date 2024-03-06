@@ -32,6 +32,17 @@ app.use('/api', apiCache('5 minutes'), (req, res) => {
   });
 });
 
+app.use('/search', (req, res) => {
+  proxyMiddleware(req, res, (err) => {
+    if (err) {
+      console.error('Proxy request error:', err);
+      res.status(500).send('Internal Server Error');
+    } else {
+      console.log('Proxy request completed.');
+    }
+  });
+});
+
 
 // Define a helper function to proxy an image
 const proxyImage = async (id, imageUrl) => {
