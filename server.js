@@ -11,29 +11,41 @@ const PORT = process.env.PORT || 4000;
 
 const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:3000'];
 
+// Set up CORS and compression middleware
 app.use(cors({ origin: allowedOrigins }));
 app.use(compression());
+
+// Cache middleware for API responses
 const apiCache = apicache.middleware;
 
-const proxyMiddleware = createProxyMiddleware({
+// Proxy middleware setup for '/api' and '/search'
+const createProxyMiddlewareWithRewrite = (pathRewrite) => createProxyMiddleware({
   target: 'https://api.mangadex.org',
   changeOrigin: true,
-  pathRewrite: { '^/api': '' }
+  pathRewrite,
 });
 
-const handleProxyRequest = (req, res, next) => {
-  proxyMiddleware(req, res, (err) => {
-    if (err) {
-      console.error('Proxy request error:', err);
-      res.status(500).send('Internal Server Error');
-    } else {
-      console.log('Proxy request completed.');
-    }
-  });
+const proxyMiddleware = createProxyMiddlewareWithRewrite({ '^/api': '' });
+const searchProxyMiddleware = createProxyMiddlewareWithRewrite({ '^/search': '' });
+
+// Generic callback function for handling proxy request completion
+const handleProxyCallback = (res) => (err) => {
+  if (err) {
+    console.error('Proxy request error:', err);
+    res.status(500).send('Internal Server Error');
+  } else {
+    console.log('Proxy request completed.');
+  }
 };
 
-app.use('/api', apiCache('5 minutes'), handleProxyRequest);
-app.use('/search', handleProxyRequest);
+// Apply proxy middleware to '/api' and '/search' routes
+app.use('/api', apiCache('5 minutes'), (req, res) => {
+  proxyMiddleware(req, res, handleProxyCallback(res));
+});
+
+app.use('/search', (req, res) => {
+  searchProxyMiddleware(req, res, handleProxyCallback(res));
+});
 
 const proxyResource = async (targetUrl, req, res) => {
   const cachedResource = cache.get(targetUrl);
@@ -91,6 +103,7 @@ app.get('/chapter/:hash/:img', async (req, res) => {
   }
 });
 
+// Start the Express server
 app.listen(PORT, () => {
   console.log(`App is running on localhost:${PORT}`);
 });
