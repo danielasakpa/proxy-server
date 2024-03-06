@@ -12,7 +12,12 @@ const PORT = process.env.PORT || 4000;
 const allowedOrigins = ['https://manga-website1.netlify.app', 'http://localhost:3000', 'https://localhost:3000'];
 
 // Set up CORS and compression middleware
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({
+  origin: allowedOrigins,
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true,
+}));
+
 app.use(compression());
 
 // Cache middleware for API responses
