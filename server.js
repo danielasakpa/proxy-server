@@ -26,6 +26,7 @@ const createProxyMiddlewareWithRewrite = (pathRewrite) => createProxyMiddleware(
 });
 
 const proxyMiddleware = createProxyMiddlewareWithRewrite({ '^/api': '' });
+const mangasProxyMiddleware = createProxyMiddlewareWithRewrite({ '^/mangas': '' });
 const searchProxyMiddleware = createProxyMiddlewareWithRewrite({ '^/search': '' });
 
 // Generic callback function for handling proxy request completion
@@ -38,9 +39,13 @@ const handleProxyCallback = (res) => (err) => {
   }
 };
 
-// Apply proxy middleware to '/api' and '/search' routes
-app.use('/api', apiCache('5 minutes'), (req, res) => {
+// Apply proxy middleware to '/api', '/mangas' and '/search' routes
+app.use('/api', apiCache('2 minutes'), (req, res) => {
   proxyMiddleware(req, res, handleProxyCallback(res));
+});
+
+app.use('/mangas', apiCache('2 minutes'), (req, res) => {
+  mangasProxyMiddleware(req, res, handleProxyCallback(res));
 });
 
 app.use('/search', (req, res) => {
