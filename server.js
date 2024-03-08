@@ -13,8 +13,13 @@ const allowedOrigins = ['https://manga-website1.netlify.app', 'https://manga-web
 
 // Set up CORS and compression middleware
 app.use(cors({
-  origin: allowedOrigins,
-  methods: "GET,POST,PUT,DELETE",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 
